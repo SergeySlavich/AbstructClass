@@ -2,6 +2,12 @@
 #include<iostream>
 using namespace std;
 
+//TODO:
+//Реализовать иерархию геометрических фигур : квадрат, треугольник, прямоугольник, круг и т.д.
+//Для каждой фигуры необходимо вывести ее первичные свойства, такие как радиус, длина стороны, и т.д.
+//и вторичные свойства такие как площадь, периметр, так же каждую фигуру нужно нарисовать.
+//Для рисования фигуры нужно задать начальные координаты, по которым фигура будет выводится.
+
 #define delimiter "\n----------------------------------------\n"
 
 namespace Geometry
@@ -133,6 +139,7 @@ namespace Geometry
 	{
 		double side_1, side_2;
 	public:
+		// Getters & Setters
 		double get_side_1()const
 		{
 			return side_1;
@@ -153,6 +160,7 @@ namespace Geometry
 			if (side_2 > 550)side_2 = 550;
 			this->side_2 = side_2;
 		}
+		// Constructors & Destructor
 		Rectangle(double side_1, double side_2, Color color, int start_x, int start_y, int line_width)
 			:Shape(color, start_x, start_y, line_width)
 		{
@@ -160,7 +168,7 @@ namespace Geometry
 			set_side_2(side_2);
 		}
 		~Rectangle() {}
-
+		// Methods
 		double get_area()const override
 		{
 			return side_1 * side_2;
@@ -171,24 +179,13 @@ namespace Geometry
 		}
 		void draw()const
 		{
-			/*HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-			SetConsoleTextAttribute(hConsole, color);
-			for (int i = 0; i < side_1; i++)
-			{
-				for (int j = 0; j < side_2; j++)
-				{
-					cout << "* ";
-				}
-				cout << endl;
-			}
-			SetConsoleTextAttribute(hConsole, Color::console_default);*/
 
 			HWND hwnd = GetConsoleWindow();	//Получаем обработчик окна консоли
 			HDC hdc = GetDC(hwnd);	//Получаем контекст устройства окна косоли
 			//Контекст устройства - это то, на чем мы будем рисовать
 
 			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
-			//Pen (карандаш) рисут контур фигуры,
+			//Pen (карандаш) рисует контур фигуры,
 			//PS_SOLID - сплошная линия
 			//5 - толщина линии 5 пикселов
 
@@ -225,6 +222,225 @@ namespace Geometry
 			:Rectangle(side, side, color, start_x, start_y, line_width) {}
 		~Square() {}
 	};
+
+	class Triangle:public Shape
+	{
+	public:
+		Triangle(Color color, int start_x, int start_y, int line_width)
+			:Shape(color, start_x, start_y, line_width)
+		{}
+		~Triangle() {};
+		// Methods
+		virtual double get_height() const = 0;
+		void info()const
+		{
+			cout << "Высота треугольника: " << endl;
+			Shape::info();
+		}
+	};
+
+	class EqulateralTriangle :public Triangle
+	{
+		double side;
+	public:
+		double get_side()const
+		{
+			return side;
+		}
+		void set_side(double side)
+		{
+			if (side < 50) side = 50;
+			if (side > 500) side = 50;
+			this->side = side;
+		}
+		//		Constructor:
+		EqulateralTriangle(double side, Color color, int start_x, int start_y, int line_width) :
+			Triangle(color, start_x, start_y, line_width)
+		{
+			set_side(side);
+		}
+		~EqulateralTriangle() {};
+		double get_height()const override
+		{
+			return side * sqrt(3)/2;
+		}
+		double get_area()const override
+		{
+			return side * get_height() * 0.5;
+		}
+		double get_perimeter()const override
+		{
+			return 3 * side;
+		}
+		void draw()const override
+		{
+			HWND hwnd = GetConsoleWindow();
+			HDC hdc = GetDC(hwnd);
+			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
+			HBRUSH hBrush = CreateSolidBrush(color);
+			SelectObject(hdc, hPen);
+			SelectObject(hdc, hBrush);
+
+			POINT point[] =
+			{
+				{start_x, start_y + side},
+				{start_x + side, start_y + side},
+				{start_x + side / 2, start_y - get_height()}
+			};
+			::Polygon(hdc, point, 3);
+
+			DeleteObject(hBrush);
+			DeleteObject(hPen);
+			ReleaseDC(hwnd, hdc);
+		}
+		void info()const override
+		{
+			cout << typeid(*this).name() << endl;
+			cout << "Длина стороны: " << side << endl;
+			Triangle::info();
+		}
+	};
+
+	class IsoscelesTriangle :public Triangle
+	{
+		double base;
+		double side;
+	public:
+		double get_base()
+		{
+			return base;
+		}
+		double get_side()
+		{
+			return side;
+		}
+		void set_base(double base)
+		{
+			if (base < 50) base = 50;
+			if (base > 500) base = 500;
+			this->base = base;
+		}
+		void set_side(double side)
+		{
+			if (side < 50) side = 50;
+			if (side > 500) side = 500;
+			this->side = side;
+		}
+		IsoscelesTriangle(double base, double side, Color color, int start_x, int start_y, int line_width) :
+			Triangle(color, start_x, start_y, line_width)
+		{
+			set_base(base);
+			set_side(side);
+		}
+		~IsoscelesTriangle() {}
+		double get_height()const override
+		{
+			return sqrt(side * side - (double)(base * base) / 4);
+		}
+		double get_area()const override
+		{
+			return 0.5 * base * get_height();
+		}
+		double get_perimeter()const override
+		{
+			return base + 2 * side;
+		}
+		void draw() const override
+		{
+			HWND hwnd = GetConsoleWindow();
+			HDC hdc = GetDC(hwnd);
+			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
+			HBRUSH hBrush = CreateSolidBrush(color);
+			SelectObject(hdc, hPen);
+			SelectObject(hdc, hBrush);
+
+			POINT point[] =
+			{
+				{start_x, start_y + side},
+				{start_x + base, start_y + side},
+				{(start_x + base / 2), (start_y + side - get_height())}
+			};
+			::Polygon(hdc, point, 3);
+
+			DeleteObject(hBrush);
+			DeleteObject(hPen);
+			ReleaseDC(hwnd, hdc);
+		}
+		void info()const override
+		{
+			cout << typeid(*this).name() << endl;
+			cout << "Основание: " << base << endl;
+			cout << "Сторона: " << side << endl;
+			Triangle::info();
+		}
+	};
+	
+	class Round:public Shape
+	{
+		double radius;
+	public:
+		// Getters & Setters
+		double get_radius()
+		{
+			return radius;
+		}
+		void set_radius(double radius)
+		{
+			if (radius < 5) radius = 5;
+			if (radius > 500) radius = 500;
+			this->radius = radius;
+		}
+		// Constructors & Destructor
+		Round(double radius, Color color, int start_x, int start_y, int line_width)
+			:Shape(color, start_x, start_y, line_width)
+		{
+			set_radius(radius);
+		}
+		~Round() {};
+		// Methods
+		double get_area()const override
+		{
+			return 3.14 * radius * radius;
+		}
+		double get_perimeter()const override
+		{
+			return 3.14 * 2 * radius;
+		}
+		void draw()const override
+		{
+
+			HWND hwnd = GetConsoleWindow();	//Получаем обработчик окна консоли
+			HDC hdc = GetDC(hwnd);	//Получаем контекст устройства окна косоли
+			//Контекст устройства - это то, на чем мы будем рисовать
+
+			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
+			//Pen (карандаш) рисует контур фигуры,
+			//PS_SOLID - сплошная линия
+			//5 - толщина линии 5 пикселов
+
+			HBRUSH hBrush = CreateSolidBrush(color);
+			//Brush - это кисть, рисует заливку замкнутой фигуры.
+
+			//Выбираем чем и на чем рисовать:
+			SelectObject(hdc, hPen);
+			SelectObject(hdc, hBrush);
+
+			//Когда все инструменты созданы и выбраны, можно вызывать функцию,
+			//для рисования нужной фигуры:
+
+			::Ellipse(hdc, start_x, start_y, start_x + 2 * radius, start_y + 2 * radius);
+
+			DeleteObject(hPen);
+			DeleteObject(hBrush);
+			ReleaseDC(hwnd, hdc);	//Освобождаем контекст устройства
+		}
+		void info()const override
+		{
+			cout << typeid(*this).name() << endl;
+			cout << "Радиус: " << radius << endl;
+			Shape::info();
+		}
+	};
 }
 
 void main()
@@ -235,9 +451,18 @@ void main()
 
 	setlocale(LC_ALL, "");
 
-	Geometry::Square square(1000, Geometry::Color::red, 300, 10, 5);
+	Geometry::Square square(100, Geometry::Color::red, 350, 10, 5);
 	square.info();
 
-	Geometry::Rectangle rect(120, 75, Geometry::Color::blue, 500, 10, 8);
+	Geometry::Rectangle rect(120, 75, Geometry::Color::blue, 400, 150, 8);
 	rect.info();
+
+	Geometry::Round round(90, Geometry::Color::green, 450, 300, 5);
+	round.info();
+
+	Geometry::EqulateralTriangle equlateralTriangle(90, Geometry::Color::blue, 425, 400, 5);
+	equlateralTriangle.info();
+
+	Geometry::IsoscelesTriangle isoscelesTriangle(90, 50, Geometry::Color::red, 450, 600, 5);
+	isoscelesTriangle.info();
 }
