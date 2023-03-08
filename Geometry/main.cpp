@@ -50,13 +50,13 @@ namespace Geometry
 		void set_start_x(int start_x)
 		{
 			if (start_x < 10)start_x = 10;
-			if (start_x > 500)start_x = 500;
+			if (start_x > 1000)start_x = 1000;
 			this->start_x = start_x;
 		}
 		void set_start_y(int start_y)
 		{
 			if (start_y < 10)start_y = 10;
-			if (start_y > 500)start_y = 500;
+			if (start_y > 1000)start_y = 1000;
 			this->start_y = start_y;
 		}
 		void set_line_width(int line_width)
@@ -79,8 +79,8 @@ namespace Geometry
 		virtual void draw()const = 0;
 		virtual void info()const
 		{
-			cout << "Площадь фигуры: " << get_area() << endl;
-			cout << "Периметр фигуры: " << get_perimeter() << endl;
+			cout << "Area: " << get_area() << endl;
+			cout << "Perimeter: " << get_perimeter() << endl;
 			draw();
 		}
 	};
@@ -209,8 +209,8 @@ namespace Geometry
 		void info()const
 		{
 			cout << typeid(*this).name() << endl;
-			cout << "Сторона 1: " << side_1 << endl;
-			cout << "Сторона 2: " << side_2 << endl;
+			cout << "Side 1: " << side_1 << endl;
+			cout << "Side 2: " << side_2 << endl;
 			Shape::info();
 		}
 	};
@@ -234,7 +234,7 @@ namespace Geometry
 		virtual double get_height() const = 0;
 		void info()const
 		{
-			cout << "Высота треугольника: " << endl;
+			cout << "Height of triangle: " << get_height() << endl;
 			Shape::info();
 		}
 	};
@@ -283,9 +283,9 @@ namespace Geometry
 
 			POINT point[] =
 			{
-				{start_x, start_y + side},
-				{start_x + side, start_y + side},
-				{start_x + side / 2, start_y - get_height()}
+				{start_x + side / 2, start_y},
+				{start_x, start_y + get_height()},
+				{start_x + side, start_y + get_height()}
 			};
 			::Polygon(hdc, point, 3);
 
@@ -296,7 +296,7 @@ namespace Geometry
 		void info()const override
 		{
 			cout << typeid(*this).name() << endl;
-			cout << "Длина стороны: " << side << endl;
+			cout << "Side: " << side << endl;
 			Triangle::info();
 		}
 	};
@@ -306,11 +306,11 @@ namespace Geometry
 		double base;
 		double side;
 	public:
-		double get_base()
+		double get_base()const
 		{
 			return base;
 		}
-		double get_side()
+		double get_side()const
 		{
 			return side;
 		}
@@ -332,7 +332,7 @@ namespace Geometry
 			set_base(base);
 			set_side(side);
 		}
-		~IsoscelesTriangle() {}
+		~IsoscelesTriangle() {};
 		double get_height()const override
 		{
 			return sqrt(side * side - (double)(base * base) / 4);
@@ -361,7 +361,6 @@ namespace Geometry
 				{(start_x + base / 2), (start_y + side - get_height())}
 			};
 			::Polygon(hdc, point, 3);
-
 			DeleteObject(hBrush);
 			DeleteObject(hPen);
 			ReleaseDC(hwnd, hdc);
@@ -369,8 +368,110 @@ namespace Geometry
 		void info()const override
 		{
 			cout << typeid(*this).name() << endl;
-			cout << "Основание: " << base << endl;
-			cout << "Сторона: " << side << endl;
+			cout << "Base: " << base << endl;
+			cout << "Side: " << side << endl;
+			Triangle::info();
+		}
+	};
+
+	class RectangularTriangle :public Triangle
+	{
+		double hypotenuse;
+		double cathet_1;
+		double cathet_2;
+	public:
+		double get_hypotenuse()const
+		{
+			return hypotenuse;
+		}
+		double get_cathet_1()const
+		{
+			return cathet_1;
+		}
+		double get_cathet_2()const
+		{
+			return cathet_2;
+		}
+		void set_hypotenuse(double hypotenuse)
+		{
+			if (hypotenuse < 30) hypotenuse = 30;
+			if (hypotenuse > 500) hypotenuse = 500;
+			if (cathet_1 && cathet_2)
+			{
+				cout << "cathet_1: " << cathet_1 << endl;
+				cout << "cathet_2: " << cathet_2 << endl;
+				cout << "hypotenuse: " << hypotenuse << endl;
+				this->hypotenuse = sqrt((cathet_1 * cathet_1) + (cathet_2 * cathet_2));
+				if (hypotenuse != this->hypotenuse) cout << "Error! Hypotenuse must " << this->hypotenuse << endl;
+			}
+			else
+			{
+				if(cathet_1 < hypotenuse && cathet_2 < hypotenuse) this->hypotenuse = hypotenuse;
+				else
+				{
+					cout << "Error! Hypotenuse must greater of cathet.\n";
+					this->hypotenuse = (cathet_1) ? (cathet_1 + 1) : (cathet_2 + 1);
+				}
+			}
+		}
+		void set_cathet_1(double cathet_1)
+		{
+			if (cathet_1 < 30) cathet_1 = 30;
+			if (cathet_1 > 500) cathet_1 = 500;
+			this->cathet_1 = cathet_1;
+		}
+		void set_cathet_2(double cathet_2)
+		{
+			if (cathet_2 < 30) cathet_2 = 30;
+			if (cathet_2 > 500) cathet_2 = 500;
+			this->cathet_2 = cathet_2;
+		}
+		RectangularTriangle(double cathet_1, double cathet_2, double hypotenuse, Color color, int start_x, int start_y, int line_width) :
+			Triangle(color, start_x, start_y, line_width)
+		{
+			set_cathet_1(cathet_1);
+			set_cathet_2(cathet_2);
+			set_hypotenuse(hypotenuse);
+		}
+		~RectangularTriangle() {};
+		double get_height()const override
+		{
+			return cathet_1;
+		}
+		double get_area()const override
+		{
+			return cathet_1 * cathet_2 * 0.5;
+		}
+		double get_perimeter()const override
+		{
+			return hypotenuse + cathet_1 + cathet_2;
+		}
+		void draw() const override
+		{
+			HWND hwnd = GetConsoleWindow();
+			HDC hdc = GetDC(hwnd);
+			HPEN hPen = CreatePen(PS_SOLID, line_width, color);
+			HBRUSH hBrush = CreateSolidBrush(color);
+			SelectObject(hdc, hPen);
+			SelectObject(hdc, hBrush);
+
+			POINT point[] =
+			{
+				{start_x, start_y},
+				{start_x, start_y + cathet_1},
+				{start_x + cathet_2, start_y + cathet_1}
+			};
+			::Polygon(hdc, point, 3);
+			DeleteObject(hBrush);
+			DeleteObject(hPen);
+			ReleaseDC(hwnd, hdc);
+		}
+		void info()const override
+		{
+			cout << typeid(*this).name() << endl;
+			cout << "Hypotenuse: " << hypotenuse << endl;
+			cout << "Cathet 1: " << cathet_1 << endl;
+			cout << "Cathet 2: " << cathet_2 << endl;
 			Triangle::info();
 		}
 	};
@@ -437,7 +538,7 @@ namespace Geometry
 		void info()const override
 		{
 			cout << typeid(*this).name() << endl;
-			cout << "Радиус: " << radius << endl;
+			cout << "Radius: " << radius << endl;
 			Shape::info();
 		}
 	};
@@ -451,18 +552,21 @@ void main()
 
 	setlocale(LC_ALL, "");
 
-	Geometry::Square square(100, Geometry::Color::red, 350, 10, 5);
+	Geometry::Square square(100, Geometry::Color::red, 450, 10, 5);
 	square.info();
 
-	Geometry::Rectangle rect(120, 75, Geometry::Color::blue, 400, 150, 8);
+	Geometry::Rectangle rect(120, 75, Geometry::Color::blue, 500, 130, 8);
 	rect.info();
 
-	Geometry::Round round(90, Geometry::Color::green, 450, 300, 5);
+	Geometry::Round round(50, Geometry::Color::green, 550, 220, 5);
 	round.info();
 
-	Geometry::EqulateralTriangle equlateralTriangle(90, Geometry::Color::blue, 425, 400, 5);
+	Geometry::EqulateralTriangle equlateralTriangle(90, Geometry::Color::blue, 600, 340, 5);
 	equlateralTriangle.info();
 
-	Geometry::IsoscelesTriangle isoscelesTriangle(90, 50, Geometry::Color::red, 450, 600, 5);
+	Geometry::IsoscelesTriangle isoscelesTriangle(90, 50, Geometry::Color::red, 650, 450, 5);
 	isoscelesTriangle.info();
+
+	Geometry::RectangularTriangle rectangularTriangle(60, 80, 100, Geometry::Color::yellow, 700, 560, 5);
+	rectangularTriangle.info();
 }
